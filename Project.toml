@@ -1,0 +1,13 @@
+name = "Attention"
+uuid = "26f34a1b-dc11-41f8-90e5-a0ee76d9d493"
+authors = ["Christoph Ortner <christophortner@gmail.com> and contributors"]
+version = "0.0.1"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
