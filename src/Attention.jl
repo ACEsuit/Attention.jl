@@ -1,5 +1,9 @@
 module Attention
+using Reexport
+using LazyArtifacts
 
-# Write your package code here.
+# Load the layers
+include("modules/layers.jl")
+@reexport using .layers
 
 end
