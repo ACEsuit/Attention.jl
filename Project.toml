@@ -3,6 +3,12 @@ uuid = "26f34a1b-dc11-41f8-90e5-a0ee76d9d493"
 authors = ["Christoph Ortner <christophortner@gmail.com> and contributors"]
 version = "0.0.1"
 
+[deps]
+LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
 julia = "1"
 
