@@ -1,13 +1,13 @@
 module Activations
 
 
-function softmax(x, dims)
+function native_softmax(x, dims)
     exp_x = exp.(x)
     sum_exp_x = sum(exp_x, dims=dims)
     exp_x ./ sum_exp_x
 end
 
-function dropout(x, rate)
+function matrix_dropout(x, rate)
     if rate == 0.0
         return x
     end

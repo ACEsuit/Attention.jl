@@ -7,58 +7,63 @@ Native attention mechanism in Julia
 [![Build Status](https://github.com/ACEsuit/Attention.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ACEsuit/Attention.jl/actions/workflows/CI.yml?query=branch%3Amain) -->
 
 
-This repository contains a very flexible implementation of the attention mechanism in Julia with basically no external requirements. The attention mechanism is a powerful tool for dealing with sequential data in natural language processing and other fields. The implementation is based on the paper "[Attention is All You Need](https://arxiv.org/abs/1706.03762)" (Vaswani et al., 2017).
+This repository contains a very flexible implementation of the attention mechanism in Julia based on the Lux deep learning framework. The attention mechanism is a powerful tool for dealing with sequential data in natural language processing and other fields. The implementation is based on the paper "[Attention is All You Need](https://arxiv.org/abs/1706.03762)" (Vaswani et al., 2017).
 
 ## Usage
 
-To use the attention mechanism, simply include the Attention packahe in your project and create an instance of the SingleHeadAttentionLayer structure. The SingleHeadAttentionLayer structure has the following fields:
+To use the SingleheadAttention layer, you need to specify the input embedding dimension (n_x), the latent dimension (n_latent), the output dimension (d_out), and the dropout probability (p_drop). You can do this using the following code:
 
-`n_emb`: The size of the input vector
-`p_drop`: The dropout probability
-`ck_weights`: The weights for the key matrix
-`cv_weights`: The weights for the value matrix
-`cq_weights`: The weights for the query matrix
-`c_proj_Weighs`: The weights for the output matrix
-
-The layer can be initialized with random weights using the `SingleHeadAttentionLayer` constructor or with pre-trained weights using the `SingleHeadAttentionLayer` constructor. The `SingleHeadAttentionLayer` constructor can be created as follows:
 
 ```julia
-layer = SingleHeadAttentionLayer(input_size::Int, dropout::Float64)
+layer = SingleheadAttention(n_x, n_latent, d_out, p_drop)
 ```
 
-Where input_size is the size of the input vector, and dropout is the dropout probability. The `SingleHeadAttentionLayer` constructor can also be created as follows:
+where n_x is the input embedding dimension, n_latent is the latent dimension, d_out is the output dimension, and p_drop is the dropout probability.
 
-Once you have created an instance of the SingleHeadAttentionLayer, you can compute the attention scores, weighted sum of the values, and output using the forward function:
+Alternatively, if you want to use the default latent dimension (n_latent=n_x), you can use the following code:
 
 ```julia
-output = layer(query::Matrix, key::Matrix, value::Matrix)
+layer = SingleheadAttention(n_x, p_drop)
 ```
 
-or in case you want to use the self attention mechanism:
+The layer is designed to be used with Lux, so you will need to install and include Lux in your project before using the SingleheadAttention layer.
+
+How it works
+The SingleheadAttention layer calculates the attention scores between the input and the query, and applies the attention scores to the value. This is done using a series of matrix multiplications, where the input and query are first multiplied by the query, key, and value weights, respectively. The attention scores are then calculated by dividing the dot product of the query and key matrices by the square root of the latent dimension. The attention scores are then passed through a softmax activation to ensure that they sum up to 1, and are finally multiplied by the value matrix to obtain the output.
+
+The layer also includes dropout, which can be applied to the input and query by specifying the dropout probability (p_drop).
+
+### Example
 
 ```julia
-output = layer(x::Matrix)
-```
 
-Where query, key, and value are matrices of the same number of rows, and x is a matrix of shape (n, m). The output is a matrix of shape (n, m).
 
-## Example
+using Lux, Random, Zygote, Optimisers
+using Revise, NNlib
+using Attention: SingleheadAttention
 
-Here's a simple example of how to use the complete attention mechanism:
+# Set state
+rng = Random.default_rng()
+Random.seed!(rng, 0)
 
-```julia
-using Attention: SingleHeadAttentionLayer
 
-seq_len = 3 # Number of examples in a batch
-n_embeds = 4 # Embedding size
-n_heads = 2 # Number of heads
-attn_layer = SingleHeadAttentionLayer(n_embeds, 0.1)
+### Batched Attention
 
-x = rand(Float64, seq_len, n_embeds)
+BATCH_SIZE = 16
+N_IN = 3
+n_embed = 64
+N_OUT = 2
 
-attn_output = attn_layer(x)
+x = randn(rng, Float32, N_IN, BATCH_SIZE)
 
-@show attn_output
+reshape(x, 1, size(x, 1), size(x, 2))
+
+# Define a model
+model = Chain(BatchNorm(N_IN), Dense(N_IN, n_embed, tanh), SingleheadAttention(n_embed, 0.1))
+
+ps, st = Lux.setup(rng, model)
+# Run the model
+y, st = Lux.apply(model, x, ps, st)
 ```
 
 ## Limitations

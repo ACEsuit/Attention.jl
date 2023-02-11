@@ -1,14 +1,33 @@
-using Revise
-using Attention: SingleHeadAttentionLayer
 
-seq_len = 3 # Number of examples in a batch
-n_embeds = 4 # Embedding size
-n_heads = 2 # Number of heads
-attn_layer = SingleHeadAttentionLayer(n_embeds, 0.1)
+using Lux, Random
+using Attention: SingleheadAttention
 
-x = rand(Float64, seq_len, n_embeds)
+# Set state
+rng = Random.default_rng()
+Random.seed!(rng, 0)
 
 
-attn_output = attn_layer(x)
+### Batched Attention
+b = 16
+l_x = 3
+d_x = 5
+d_out = 2
+d_attn = 8
 
-@show attn_output
+x = rand(b, l_x, d_x)
+z = rand(b, l_x, d_x)
+
+layer = SingleheadAttention(d_x, d_attn, d_out, 0.1)
+
+ps, st = Lux.setup(rng, layer)
+outb_batched = layer(x, z, ps, st)
+
+
+# Unbatched
+x = rand(l_x, d_x)
+z = rand(l_x, d_x)
+
+# Output should be the (3, 2)
+
+layer = SingleheadAttention(d_x, d_attn, d_out, 0.1)
+layer(x, z, ps, st)
